@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrediAuto - L'avenir de votre voiture</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <i class="fa-solid fa-chart-line"></i> Predi<span>Auto</span>
+        </div>
+        <div class="nav-links">
+            <a href="#">Comment ça marche ?</a>
+            <a href="#" class="btn-secondary">Connexion</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <div class="card form-card">
+            <div class="header-text">
+                <h1>Estimez la valeur réelle & future.</h1>
+                <p>Notre IA analyse le marché pour prédire le prix juste aujourd'hui et sa dépréciation à 2 ans.</p>
+            </div>
+
+            <form id="predictionForm">
+                <div class="input-group">
+                    <label>Marque</label>
+                    <select id="make" required>
+                        <option value="" disabled selected>Choisir...</option>
+                        <option value="Renault">Renault</option>
+                        <option value="Peugeot">Peugeot</option>
+                        <option value="Volkswagen">Volkswagen</option>
+                        <option value="Audi">Audi</option>
+                        <option value="BMW">BMW</option>
+                        <option value="Mercedes">Mercedes</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Modèle</label>
+                    <input type="text" id="model" placeholder="Ex: Clio 5, Golf 7..." required>
+                </div>
+
+                <div class="row">
+                    <div class="input-group">
+                        <label>Année</label>
+                        <input type="number" id="year" placeholder="2020" min="1990" max="2025" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Kilométrage</label>
+                        <input type="number" id="km" placeholder="50000" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Carburant</label>
+                    <select id="fuel">
+                        <option value="Essence">Essence</option>
+                        <option value="Diesel">Diesel</option>
+                        <option value="Hybride">Hybride</option>
+                        <option value="Electrique">Électrique</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="submitBtn">
+                    <span class="btn-text">Lancer l'analyse</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="card result-card hidden" id="resultCard">
+            <div class="loading" id="loader">
+                <div class="spinner"></div>
+                <p>Analyse du marché en cours...</p>
+            </div>
+
+            <div class="result-content hidden" id="resultContent">
+                <div class="badge">Résultat de l'IA</div>
+                
+                <h2 id="carTitle">Renault Clio (2020)</h2>
+                
+                <div class="price-box current">
+                    <span class="label">Prix Juste Aujourd'hui</span>
+                    <span class="price" id="currentPrice">-- €</span>
+                </div>
+
+                <div class="timeline">
+                    <div class="line"></div>
+                    <div class="point start"></div>
+                    <div class="point end"></div>
+                </div>
+
+                <div class="price-box future">
+                    <span class="label">Projection dans 2 ans (+30k km)</span>
+                    <span class="price" id="futurePrice">-- €</span>
+                    <span class="diff" id="diffPrice">- -- €</span>
+                </div>
+
+                <div class="advice">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <p>Conseil : C'est le bon moment pour vendre avant la chute de cote des 100 000km.</p>
+                </div>
+
+                <button class="btn-secondary full-width" onclick="resetForm()">Nouvelle estimation</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
