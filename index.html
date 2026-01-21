@@ -9,39 +9,56 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        /* On place le conteneur de la voiture en arrière-plan absolu */
+        /* On place le conteneur de la route en arrière-plan absolu */
         .road-container {
-            position: absolute;   /* Sort du flux normal */
-            top: 70%;             /* Se place au milieu verticalement */
-            transform: translateY(-50%); /* Ajustement fin pour être pile au centre */
+            position: absolute;   
+            top: 70%;             
+            transform: translateY(-50%); 
             left: 0;
             width: 100%;
-            z-index: -1;          /* IMPORTANT : Passe DERRIÈRE le contenu principal */
-            overflow: hidden;     /* Cache ce qui dépasse */
-            pointer-events: none; /* Empêche de cliquer sur la voiture par erreur */
+            height: 100px;        
+            z-index: -1;          
+            overflow: hidden;     
+            pointer-events: none; 
+
+            /* --- CENTRAGE FLEXBOX (NOUVEAU) --- */
+            display: flex;
+            align-items: center; /* Centre verticalement la voiture dans la route */
+            
+            /* IMAGE DE ROUTE */
+            background-image: url('img/road.png'); 
+            background-repeat: repeat-x; 
+            background-position: center; 
+            border-top: 3px solid #444;
+            border-bottom: 3px solid #444;
         }
 
         /* La voiture */
         .moving-car {
             width: 150px;
-            opacity: 0.6; /* Un peu plus transparente pour ne pas gêner la lecture */
-            /* Vitesse changée à 4s (plus rapide) */
+            opacity: 1; /* Plus visible */
+            
+            /* --- AJUSTEMENT FIN (MODIFIABLE) --- */
+            /* Si la voiture semble "voler", augmentez ce chiffre (ex: 10px) */
+            /* Si la voiture est trop basse, mettez un chiffre négatif (ex: -10px) */
+            margin-top: 0px; 
+
+            /* Animation */
             animation: driveAcross 4s linear infinite; 
         }
 
         @keyframes driveAcross {
             0% {
-                transform: translateX(-200px); /* Départ à gauche */
+                transform: translateX(-200px); 
             }
             100% {
-                transform: translateX(100vw); /* Arrivée à droite */
+                transform: translateX(100vw); 
             }
         }
         
-        /* On s'assure que le body ne scroll pas horizontalement */
         body {
             overflow-x: hidden;
-            position: relative; /* Nécessaire pour le positionnement absolu */
+            position: relative;
         }
     </style>
 </head>
@@ -64,8 +81,8 @@
         
         <div class="card form-card">
             <div class="header-text">
-                <h1>Estimez la valeur réelle & future de votre voiture</h1>
-                <p>Notre IA analyse le marché des véhicules d'occasions français pour prédire le prix juste aujourd'hui et sa dépréciation sur les années à venir.</p>
+                <h1>Estimez la valeur réelle & future.</h1>
+                <p>Notre IA analyse le marché pour prédire le prix juste aujourd'hui et sa dépréciation à 2 ans.</p>
             </div>
 
             <form id="predictionForm">
@@ -131,34 +148,7 @@
             </div>
 
             <div class="result-content hidden" id="resultContent">
-                <div class="badge">Résultat de l'IA</div>
-                
-                <h2 id="carTitle">Renault Clio (2020)</h2>
-                
-                <div class="price-box current">
-                    <span class="label">Prix Juste Aujourd'hui</span>
-                    <span class="price" id="currentPrice">-- €</span>
                 </div>
-
-                <div class="timeline">
-                    <div class="line"></div>
-                    <div class="point start"></div>
-                    <div class="point end"></div>
-                </div>
-
-                <div class="price-box future">
-                    <span class="label">Projection dans 2 ans (+30k km)</span>
-                    <span class="price" id="futurePrice">-- €</span>
-                    <span class="diff" id="diffPrice">- -- €</span>
-                </div>
-
-                <div class="advice">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <p>Conseil : C'est le bon moment pour vendre avant la chute de cote des 100 000km.</p>
-                </div>
-
-                <button class="btn-secondary full-width" onclick="resetForm()">Nouvelle estimation</button>
-            </div>
         </div>
     </div>
 
