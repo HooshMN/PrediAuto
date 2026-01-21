@@ -220,10 +220,10 @@ def generate_dashboard():
     </html>
     """
 
-    with open("dashboard.html", "w", encoding="utf-8") as f:
+    with open("generated_dashboard.html", "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    print("✅ SUCCÈS : Ouvrez 'dashboard.html' pour voir les résultats !")
+    print("✅ SUCCÈS : Ouvrez 'generated_dashboard.html' pour voir les résultats !")
 
 if __name__ == "__main__":
     generate_dashboard()

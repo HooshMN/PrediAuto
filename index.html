@@ -7,6 +7,43 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* On place le conteneur de la voiture en arrière-plan absolu */
+        .road-container {
+            position: absolute;   /* Sort du flux normal */
+            top: 70%;             /* Se place au milieu verticalement */
+            transform: translateY(-50%); /* Ajustement fin pour être pile au centre */
+            left: 0;
+            width: 100%;
+            z-index: -1;          /* IMPORTANT : Passe DERRIÈRE le contenu principal */
+            overflow: hidden;     /* Cache ce qui dépasse */
+            pointer-events: none; /* Empêche de cliquer sur la voiture par erreur */
+        }
+
+        /* La voiture */
+        .moving-car {
+            width: 150px;
+            opacity: 0.6; /* Un peu plus transparente pour ne pas gêner la lecture */
+            /* Vitesse changée à 4s (plus rapide) */
+            animation: driveAcross 4s linear infinite; 
+        }
+
+        @keyframes driveAcross {
+            0% {
+                transform: translateX(-200px); /* Départ à gauche */
+            }
+            100% {
+                transform: translateX(100vw); /* Arrivée à droite */
+            }
+        }
+        
+        /* On s'assure que le body ne scroll pas horizontalement */
+        body {
+            overflow-x: hidden;
+            position: relative; /* Nécessaire pour le positionnement absolu */
+        }
+    </style>
 </head>
 <body>
 
@@ -15,17 +52,20 @@
             <i class="fa-solid fa-chart-line"></i> Predi<span>Auto</span>
         </div>
         <div class="nav-links">
-            <a href="#">Comment ça marche ?</a>
-            <a href="#" class="btn-secondary">Connexion</a>
+            <a href="datas/dashboard.html">Comment ça marche ? (Data)</a>
         </div>
     </nav>
+
+    <div class="road-container">
+        <img src="img/car.png" alt="Voiture animée" class="moving-car">
+    </div>
 
     <div class="container">
         
         <div class="card form-card">
             <div class="header-text">
-                <h1>Estimez la valeur réelle & future.</h1>
-                <p>Notre IA analyse le marché pour prédire le prix juste aujourd'hui et sa dépréciation à 2 ans.</p>
+                <h1>Estimez la valeur réelle & future de votre voiture</h1>
+                <p>Notre IA analyse le marché des véhicules d'occasions français pour prédire le prix juste aujourd'hui et sa dépréciation sur les années à venir.</p>
             </div>
 
             <form id="predictionForm">
@@ -58,14 +98,23 @@
                     </div>
                 </div>
 
-                <div class="input-group">
-                    <label>Carburant</label>
-                    <select id="fuel">
-                        <option value="Essence">Essence</option>
-                        <option value="Diesel">Diesel</option>
-                        <option value="Hybride">Hybride</option>
-                        <option value="Electrique">Électrique</option>
-                    </select>
+                <div class="row">
+                    <div class="input-group">
+                        <label>Carburant</label>
+                        <select id="fuel">
+                            <option value="Essence">Essence</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Hybride">Hybride</option>
+                            <option value="Electrique">Électrique</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Boîte de vitesse</label>
+                        <select id="gearbox">
+                            <option value="Manuelle">Manuelle</option>
+                            <option value="Automatique">Automatique</option>
+                        </select>
+                    </div>
                 </div>
 
                 <button type="submit" id="submitBtn">
