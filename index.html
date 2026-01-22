@@ -9,31 +9,70 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
+        /* --- NOUVEAU THEME "AUTOMOTIVE NIGHT" --- */
+        :root {
+            --bg-dark: #09090b;       /* Noir profond */
+            --bg-panel: #18181b;      /* Gris Asphalte */
+            --accent: #f59e0b;        /* Orange Ambré (Style compteur/clignotant) */
+            --accent-hover: #d97706;  /* Orange plus foncé */
+            --text-main: #f4f4f5;     /* Blanc cassé */
+            --text-muted: #a1a1aa;    /* Gris métal */
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
         /* --- STYLE GLOBAL DU LAYOUT --- */
         body {
             overflow-x: hidden;
             position: relative;
-            background-color: #0f172a;
+            /* Fond dégradé radial pour effet "Showroom" */
+            background: radial-gradient(circle at top left, #27272a, #000000);
             font-family: 'Inter', sans-serif;
             margin: 0;
             display: flex;
             flex-direction: column;
-            min-height: 100vh; /* Assure que le footer va en bas */
+            min-height: 100vh;
+            color: var(--text-main);
         }
+
+        /* Navigation */
+        nav {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: transparent; /* On laisse voir le fond */
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -1px;
+        }
+        
+        .logo i { color: var(--accent); } /* Icône en orange */
+        .logo span { color: var(--accent); } /* "Auto" en orange */
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+        .nav-links a:hover { color: var(--accent); }
 
         /* On force le layout en GRID pour gérer les deux colonnes */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            flex: 1; /* Prend l'espace disponible pour pousser le footer */
+            flex: 1; 
             
-            /* Mise en place des 2 colonnes */
             display: grid;
-            grid-template-columns: 1fr 1fr; /* 50% / 50% */
-            gap: 50px; /* Espace entre les deux cartes */
-            align-items: center; /* Centre verticalement par défaut */
-            /* height: 80vh; Retiré pour laisser le flex gérer la hauteur */
+            grid-template-columns: 1fr 1fr; 
+            gap: 60px; 
+            align-items: center; 
             padding-top: 50px;
             padding-bottom: 50px;
         }
@@ -41,36 +80,44 @@
         /* --- CARTE INTRO (GAUCHE) --- */
         .intro-card {
             text-align: left;
-            background: rgba(15, 23, 42, 0.8);
+            /* Effet verre fumé sombre */
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
             padding: 40px;
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 4px solid var(--accent); /* Petite touche design à gauche */
             
-            /* LA CLÉ DU SUCCÈS : ON LA REMONTE */
             transform: translateY(-80px); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         .intro-card h1 {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             margin-top: 0;
-            line-height: 1.2;
+            line-height: 1.1;
             color: white;
+            font-weight: 800;
+            text-transform: uppercase; /* Plus "Marque auto" */
+            letter-spacing: -0.02em;
         }
         .intro-card p {
-            color: #94a3b8;
+            color: var(--text-muted);
             font-size: 1.1rem;
             margin-top: 20px;
+            font-weight: 300;
         }
 
         /* --- CARTE FORMULAIRE (DROITE) --- */
         .form-card {
-            background: #1e293b;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            /* Dégradé subtil gris métal */
+            background: linear-gradient(145deg, #1f1f22, #111113);
+            padding: 35px;
+            border-radius: 24px;
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.05), /* Bordure fine */
+                0 20px 50px rgba(0,0,0,0.7); /* Ombre profonde */
             
-            /* On s'assure qu'elle est bien visible au dessus de la route */
             position: relative; 
             z-index: 2;
         }
@@ -78,21 +125,84 @@
         .form-title {
             margin-top: 0;
             margin-bottom: 25px;
-            font-size: 1.3rem;
-            color: #f8fafc;
+            font-size: 1.2rem;
+            color: white;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             padding-bottom: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Inputs stylisés "Tableau de bord" */
+        .input-group { margin-bottom: 15px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            background: #09090b; /* Fond très sombre */
+            border: 1px solid #3f3f46;
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+            box-sizing: border-box; /* Important pour ne pas casser la layout */
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+
+        /* Bouton "Start Engine" */
+        #submitBtn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            /* Dégradé Orange Sport */
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            color: black; /* Texte noir pour contraste sur orange */
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4); /* Glow orange */
+        }
+
+        #submitBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -5px rgba(245, 158, 11, 0.5);
         }
 
         /* --- ROUTE ET VOITURE --- */
         .road-container {
             position: absolute;   
-            top: 75%; /* Positionnement vertical */
+            top: 75%; 
             transform: translateY(-50%); 
             left: 0;
             width: 100%;
             height: 120px;        
-            z-index: 0; /* Derrière le form, mais devant le fond */          
+            z-index: 0;         
             overflow: hidden;     
             pointer-events: none; 
 
@@ -102,8 +212,11 @@
             background-image: url('img/road.png'); 
             background-repeat: repeat-x; 
             background-position: center; 
-            border-top: 3px solid #333;
-            border-bottom: 3px solid #333;
+            
+            /* Bordures de route plus foncées pour aller avec le thème sombre */
+            border-top: 2px solid #333;
+            border-bottom: 2px solid #333;
+            opacity: 0.8; /* Légèrement fondu dans le décor */
         }
 
         .moving-car {
@@ -111,6 +224,7 @@
             opacity: 1; 
             margin-top: -5px; 
             animation: driveAcross 5s linear infinite; 
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); /* Ombre sous la voiture */
         }
 
         @keyframes driveAcross {
@@ -118,14 +232,14 @@
             100% { transform: translateX(100vw); }
         }
 
-        /* --- FOOTER (NOUVEAU) --- */
+        /* --- FOOTER --- */
         .site-footer {
             text-align: center;
             padding: 30px 20px;
-            background-color: #0f172a; /* Même couleur que le fond pour masquer la route si besoin */
+            background-color: #050505; 
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            color: #64748b;
-            font-size: 0.9rem;
+            color: #52525b;
+            font-size: 0.85rem;
             position: relative;
             z-index: 10;
             margin-top: auto;
@@ -133,25 +247,29 @@
 
         .site-footer span {
             display: block;
-            margin-top: 5px;
-            color: #94a3b8;
+            margin-top: 8px;
+            color: #71717a;
             font-weight: 500;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
         }
 
-        /* --- RESPONSIVE (MOBILE) --- */
+        /* --- RESPONSIVE --- */
         @media (max-width: 900px) {
             .container {
-                grid-template-columns: 1fr; /* Une seule colonne */
-                padding-top: 50px;
+                grid-template-columns: 1fr;
+                padding-top: 30px;
             }
             .intro-card {
-                transform: none; /* On annule le décalage sur mobile */
+                transform: none;
                 text-align: center;
-                margin-bottom: 20px;
+                margin-bottom: 30px;
+                background: rgba(0,0,0,0.8); /* Plus opaque sur mobile */
             }
+            .intro-card h1 { font-size: 2rem; }
             .road-container {
-                top: 90%; /* Ajustement route mobile */
-                opacity: 0.5; /* Plus discret sur mobile */
+                top: 90%; 
+                opacity: 0.4;
             }
         }
     </style>
@@ -160,10 +278,10 @@
 
     <nav>
         <div class="logo">
-            <i class="fa-solid fa-chart-line"></i> Predi<span>Auto</span>
+            <i class="fa-solid fa-gauge-high"></i> Predi<span>Auto</span>
         </div>
         <div class="nav-links">
-            <a href="datas/dashboard.html">Comment ça marche ? (Data)</a>
+            <a href="datas/dashboard.html"><i class="fa-solid fa-chart-pie"></i> Data & Analyse</a>
         </div>
     </nav>
 
@@ -174,18 +292,18 @@
     <div class="container">
         
         <div class="intro-card">
-            <h1>Estimez la valeur réelle & future de votre voiture.</h1>
-            <p>Notre IA analyse le marché des véhicules d'occasion pour prédire le prix juste aujourd'hui et sa dépréciation sur les années à venir.</p>
+            <h1>Estimez la valeur <span style="color:var(--accent)">réelle</span> & future.</h1>
+            <p>Notre IA analyse le marché des véhicules d'occasion en temps réel pour prédire la dépréciation exacte de votre modèle.</p>
         </div>
 
         <div class="form-card">
-            <h2 class="form-title">Renseignez les caractéristiques</h2>
+            <h2 class="form-title">Configuration de votre Véhicule</h2>
 
             <form id="predictionForm">
                 <div class="input-group">
                     <label>Marque</label>
                     <select id="make" required>
-                        <option value="" disabled selected>Choisir...</option>
+                        <option value="" disabled selected>Sélectionner...</option>
                         <option value="Renault">Renault</option>
                         <option value="Peugeot">Peugeot</option>
                         <option value="Citroën">Citroën</option>
@@ -212,7 +330,7 @@
                     </div>
                     <div class="input-group">
                         <label>Kilométrage</label>
-                        <input type="number" id="km" placeholder="50000" required>
+                        <input type="number" id="km" placeholder="Ex: 50000" required>
                     </div>
                 </div>
 
@@ -245,7 +363,7 @@
         <div class="card result-card hidden" id="resultCard" style="grid-column: span 2; max-width: 600px; margin: 0 auto; z-index: 5; position: relative;">
             <div class="loading" id="loader">
                 <div class="spinner"></div>
-                <p>Analyse du marché en cours...</p>
+                <p style="color:white;">Calcul de la cote...</p>
             </div>
             <div class="result-content hidden" id="resultContent">
                 </div>
@@ -254,7 +372,7 @@
 
     <footer class="site-footer">
         Projet académique M2 Miage Mixte
-        <span>Piravine JEYAMOHAN | Hossein ZAER | Chems Eddine Houidi</span>
+        <span>Piravine JEYAMOHAN | Hossein ZAER | Chems-eddine HOUIDI</span>
     </footer>
 
     <script src="script.js"></script>
