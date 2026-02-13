@@ -3,33 +3,43 @@ import numpy as np
 import joblib
 import datetime
 
-# On importe le Random Forest
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-# On n'utilise plus PCA
 from sklearn.metrics import mean_absolute_error, r2_score
 
-# --- 1. FONCTIONS UTILES (NETTOYAGE & INTELLIGENCE) ---
+# ==========================================
+# 1. FONCTIONS DE NETTOYAGE & INTELLIGENCE
+# ==========================================
 
 def nettoyer_donnees(df):
     """
-    Nettoie tout le dataset en profondeur dès le chargement.
+    Nettoie le dataset en profondeur :
+    - Enlève les espaces, retours à la ligne, guillemets.
+    - Corrige les départements (.0).
     """
+    # Renommage colonne Prix si nécessaire (gestion minuscules/majuscules)
+    if "price" in df.columns:
+        df.rename(columns={"price": "Prix"}, inplace=True)
+        
     for col in df.columns:
         if df[col].dtype == 'object':
-            # 1. Force le texte, enlève les espaces et les retours à la ligne
+            # Nettoyage agressif
             df[col] = df[col].astype(str).str.strip().str.replace(r'\n', '', regex=True).str.replace('"', '').str.replace("'", "")
             
-            # Correction spécifique département
+            # Correction spécifique département (75.0 -> 75)
             if col == "departement":
                 df[col] = df[col].str.replace(r'\.0$', '', regex=True)
     return df
 
 def get_smart_value(df, target_col, criteria):
+    """
+    Cherche la valeur la plus logique (Médiane ou Mode) en fonction de critères.
+    Ex: Si on cherche la puissance d'une CLIO 2012, on prend la médiane des CLIO 2012.
+    """
     subset = df.copy()
     for col, val in criteria.items():
         if col in subset.columns:
@@ -50,6 +60,7 @@ def get_smart_value(df, target_col, criteria):
         return None
 
 def verifier_existence(df, col, valeur, filtre_col=None, filtre_val=None):
+    """Vérifie si une valeur existe dans la base (Insensible à la casse)."""
     subset = df
     if filtre_col and filtre_val:
         subset = df[df[filtre_col].astype(str).str.upper() == str(filtre_val).upper()]
@@ -63,21 +74,27 @@ def verifier_existence(df, col, valeur, filtre_col=None, filtre_val=None):
     return None
 
 def afficher_options(df, col, filtre_col=None, filtre_val=None):
+    """Affiche les options disponibles pour aider l'utilisateur."""
     subset = df
     if filtre_col and filtre_val:
         subset = df[df[filtre_col].astype(str).str.upper() == str(filtre_val).upper()]
     
     options = sorted(subset[col].dropna().astype(str).unique())
-    print(f"\n👇 Voici la liste complète des options ({len(options)}) :")
-    print(" | ".join(options))
+    print(f"\n👇 Options disponibles ({len(options)}) :")
+    # On affiche les 50 premiers pour ne pas inonder l'écran
+    print(" | ".join(options[:50]))
+    if len(options) > 50:
+        print("... (liste tronquée)")
     print("-" * 30)
 
-# --- 2. ENTRAÎNEMENT (MODIFIÉ POUR RANDOM FOREST) ---
+# ==========================================
+# 2. ENTRAÎNEMENT OPTIMISÉ (LOG + RANDOM FOREST)
+# ==========================================
 
 def entrainer_modele():
     print("Chargement et nettoyage des données...")
     try:
-        # skipinitialspace=True aide pour les fichiers mal formatés
+        # skipinitialspace=True est crucial pour vos données
         df = pd.read_csv("dataset_fossil.csv", sep=None, engine='python', skipinitialspace=True)
         df = nettoyer_donnees(df)
         
@@ -86,31 +103,32 @@ def entrainer_modele():
         return None, None, None, None
 
     target = "Prix"
-    
-    num_features = [
-        "year", "km", "puissancefiscale", "puissancedin", 
-        "émissionsdeco2", "nombredeportes", "nombredeplaces", "garantie",
-        "crit'air", "consommationmixte"
-    ]
-    
-    cat_features = [
-        "brand", "carmodel", "gearbox", "fuel", "couleurextérieure",
-        "premièremain(déclaratif)", "contrôletechnique", "garantieconstructeur",
-        "normeeuro", "vendeur", "departement"
-    ]
+    if target not in df.columns:
+        if "price" in df.columns: target = "price"
+        else:
+            print(f"Erreur : Colonne '{target}' introuvable. Colonnes : {df.columns.tolist()}")
+            return None, None, None, None
 
-    missing_cols = [c for c in num_features + cat_features + [target] if c not in df.columns]
-    if missing_cols:
-        print(f"Colonnes manquantes : {missing_cols}")
-        return None, None, None, None
+    # On ne supprime PAS les outliers, on garde tout le dataset.
+    print(f"📊 Données chargées : {len(df)} véhicules.")
+
+    # Définition des colonnes
+    num_features = ["year", "km", "puissancefiscale", "puissancedin", "crit'air"]
+    # Ajout dynamique si elles existent
+    possibles = ["émissionsdeco2", "nombredeportes", "nombredeplaces", "garantie", "consommationmixte"]
+    num_features += [c for c in possibles if c in df.columns]
+
+    cat_features = ["brand", "carmodel", "gearbox", "fuel", "departement"]
+    possibles_cat = ["couleurextérieure", "premièremain(déclaratif)", "contrôletechnique", "garantieconstructeur", "normeeuro", "vendeur"]
+    cat_features += [c for c in possibles_cat if c in df.columns]
 
     X = df[num_features + cat_features]
     y = df[target]
 
-    # Pipeline de transformation (On garde Scaling et OneHot)
+    # Pipeline de transformation
     numeric_transformer = Pipeline(steps=[
         ("imputer", SimpleImputer(strategy="median")),
-        ("scaler", StandardScaler()) # Le Random Forest n'en a pas obligatoirement besoin, mais ça ne fait pas de mal
+        ("scaler", StandardScaler()) 
     ])
 
     categorical_transformer = Pipeline(steps=[
@@ -125,29 +143,44 @@ def entrainer_modele():
         ]
     )
 
-    # --- CHANGEMENT MAJEUR ICI ---
-    # Remplacement de Ridge/PCA par Random Forest
+    # MODELE : RANDOM FOREST BOOSTÉ
     model = Pipeline(steps=[
         ("preprocessing", preprocessor),
-        # Pas de PCA pour le Random Forest, il gère mieux les données brutes
-        ("regressor", RandomForestRegressor(n_estimators=100, random_state=42))
+        ("regressor", RandomForestRegressor(
+            n_estimators=500,       # 500 arbres pour la précision
+            min_samples_leaf=1,     # Autorise les règles fines
+            n_jobs=-1,              # Utilise toute la puissance CPU
+            random_state=42
+        ))
     ])
 
-    print("Entraînement du modèle Random Forest en cours (cela peut prendre quelques secondes)...")
+    print("Entraînement en cours avec Log-Transformation...")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model.fit(X_train, y_train)
+    
+    # --- ASTUCE PRO : LOG-TRANSFORMATION ---
+    # On entraîne sur log(Prix). Cela réduit l'impact des très gros prix.
+    # L'erreur est minimisée en POURCENTAGE et non en EUROS absolus.
+    y_train_log = np.log1p(y_train)
+    model.fit(X_train, y_train_log)
 
-    y_pred = model.predict(X_test)
+    # Évaluation (On convertit le résultat log en euros avec expm1)
+    y_pred_log = model.predict(X_test)
+    y_pred = np.expm1(y_pred_log) 
+
     score_r2 = r2_score(y_test, y_pred)
     mae = mean_absolute_error(y_test, y_pred)
+    median_error = np.median(np.abs(y_test - y_pred)) # Erreur médiane (plus représentative)
     
-    print(f"\n--- Résultats ---")
-    print(f"✅ R² Score : {score_r2:.2f} (Objectif > 0.80)")
-    print(f"💶 Erreur moyenne (MAE) : {mae:.0f} €")
+    print(f"\n--- 🏆 RÉSULTATS ---")
+    print(f"✅ R² Score : {score_r2:.2f}")
+    print(f"📉 Erreur Moyenne (MAE) : {mae:.0f} €")
+    print(f"🎯 Erreur Médiane : {median_error:.0f} € (C'est l'erreur la plus fréquente)")
     
     return model, num_features, cat_features, df
 
-# --- 3. PRÉDICTION ---
+# ==========================================
+# 3. INTERFACE DE PRÉDICTION INTELLIGENTE
+# ==========================================
 
 def predire_prix_intelligent(model, df_original, num_features, cat_features):
     print("\n-------------------------------------------")
@@ -157,65 +190,63 @@ def predire_prix_intelligent(model, df_original, num_features, cat_features):
     
     input_data = {}
     
-    # A. MARQUE
+    # --- A. SAISIE MARQUE ---
     while True:
-        val = input("\nMarque (ex: RENAULT) * : ").strip()
-        vraie_marque = verifier_existence(df_original, 'brand', val)
-        if vraie_marque:
-            input_data['brand'] = vraie_marque
+        val = input("\nMarque * : ").strip()
+        res = verifier_existence(df_original, 'brand', val)
+        if res: 
+            input_data['brand'] = res
             break
-        print(f"❌ Marque inconnue.")
+        print("❌ Marque inconnue.")
         afficher_options(df_original, 'brand')
 
-    # B. MODÈLE
+    # --- B. SAISIE MODÈLE ---
     while True:
-        val = input(f"Modèle de {input_data['brand']} (ex: CLIO) * : ").strip()
-        vrai_modele = verifier_existence(df_original, 'carmodel', val, filtre_col='brand', filtre_val=input_data['brand'])
-        if vrai_modele:
-            input_data['carmodel'] = vrai_modele
+        val = input(f"Modèle de {input_data['brand']} * : ").strip()
+        res = verifier_existence(df_original, 'carmodel', val, filtre_col='brand', filtre_val=input_data['brand'])
+        if res: 
+            input_data['carmodel'] = res
             break
         print(f"❌ Modèle inconnu chez {input_data['brand']}.")
         afficher_options(df_original, 'carmodel', 'brand', input_data['brand'])
 
-    # C. ANNÉE
+    # --- C. SAISIE ANNÉE ---
     current_year = datetime.datetime.now().year
     while True:
-        val = input("Année (ex: 2008) * : ").strip()
         try:
-            year_val = float(val)
-            if 1950 <= year_val <= current_year + 1:
-                input_data['year'] = year_val
+            val = float(input("Année * : ").strip())
+            if 1900 <= val <= current_year + 1:
+                input_data['year'] = val
                 break
             else:
-                print(f"❌ Année invalide (Doit être entre 1950 et {current_year}).")
+                print(f"❌ Année invalide (1900-{current_year}).")
         except ValueError:
-            print("❌ Veuillez entrer un chiffre valide.")
+            print("❌ Chiffre requis.")
 
-    # D. CARBURANT
+    # --- D. SAISIE CARBURANT ---
     while True:
-        val = input("Carburant (ex: Diesel) * : ").strip()
-        vrai_fuel = verifier_existence(df_original, 'fuel', val)
-        if vrai_fuel:
-            input_data['fuel'] = vrai_fuel
+        val = input("Carburant * : ").strip()
+        res = verifier_existence(df_original, 'fuel', val)
+        if res:
+            input_data['fuel'] = res
             break
-        print(f"❌ Carburant inconnu.")
+        print("❌ Carburant inconnu.")
         afficher_options(df_original, 'fuel')
 
-    # E. CRIT'AIR (Correction demandée)
+    # --- E. SAISIE CRIT'AIR ---
     while True:
-        val = input("Crit'Air (1, 2, 3, 4, 5) * : ").strip()
         try:
-            float_val = float(val)
-            if 1 <= float_val <= 5: 
-                input_data["crit'air"] = float_val
+            val_input = input("Crit'Air (1-5) * : ").strip()
+            v = float(val_input)
+            if 1 <= v <= 5:
+                input_data["crit'air"] = v
                 break
             else:
-                print("⚠️ Pour les véhicules fossiles, Crit'Air est entre 1 et 5.")
-                print("   (0 est réservé aux électriques).")
+                print("⚠️ Pour une voiture fossile, Crit'Air est entre 1 et 5.")
         except ValueError:
-            print("❌ Chiffre attendu.")
+            print("❌ Chiffre requis.")
 
-    # --- INFOS TECHNIQUES ---
+    # --- F. CHAMPS TECHNIQUES (AUTO-COMPLÉTION) ---
     smart_fields = {
         'km': "Kilométrage",
         'gearbox': "Boîte de vitesse",
@@ -223,21 +254,22 @@ def predire_prix_intelligent(model, df_original, num_features, cat_features):
         'puissancefiscale': "Puissance Fiscale (CV)"
     }
     
-    print("\n--- Infos Techniques (Appuyez sur Entrée pour laisser le modèle deviner) ---")
+    print("\n--- Infos Techniques (Appuyez sur Entrée pour laisser l'IA deviner) ---")
     
     for field, label in smart_fields.items():
         val = input(f"{label} : ").strip()
         
         if val:
             try:
-                if field in ['km', 'puissancedin', 'puissancefiscale']:
+                if field != 'gearbox':
                     input_data[field] = float(val)
                 else:
                     input_data[field] = val
             except ValueError:
-                val = "" 
+                val = "" # Si erreur de conversion, on force le mode auto
 
         if not val:
+            # Recherche hiérarchique : 1. Marque+Modele+Annee -> 2. Marque+Modele -> 3. Défaut
             found_val = get_smart_value(df_original, field, 
                                      {'brand': input_data['brand'], 
                                       'carmodel': input_data['carmodel'], 
@@ -248,16 +280,17 @@ def predire_prix_intelligent(model, df_original, num_features, cat_features):
                                          {'brand': input_data['brand'], 
                                           'carmodel': input_data['carmodel']})
 
+            # Valeurs de secours ultimes
             if found_val is None:
                 if field == 'gearbox': found_val = 'manuelle'
                 elif field == 'km': found_val = 150000.0
                 elif field == 'puissancedin': found_val = 90.0
                 elif field == 'puissancefiscale': found_val = 5.0
 
-            print(f"   🤖 {label} déduit(e) : {found_val}")
+            print(f"   🤖 {label} estimé : {found_val}")
             input_data[field] = found_val
 
-    # VALEURS PAR DÉFAUT
+    # VALEURS PAR DÉFAUT (Pour les colonnes secondaires)
     defaults = {
         'émissionsdeco2': 120, 'nombredeportes': 5, 'nombredeplaces': 5,
         'garantie': 0, 'consommationmixte': 5.5, 'couleurextérieure': 'gris',
@@ -270,12 +303,14 @@ def predire_prix_intelligent(model, df_original, num_features, cat_features):
         if col not in input_data:
             input_data[col] = defaults.get(col)
 
-    # PRÉDICTION
+    # --- PRÉDICTION FINALE ---
     df_new = pd.DataFrame([input_data])
     df_new["departement"] = df_new["departement"].astype(str)
 
     try:
-        prix = model.predict(df_new)[0]
+        # On prédit le log, puis on convertit en euros
+        prix_log = model.predict(df_new)[0]
+        prix = np.expm1(prix_log)
         print(f"\n💰 PRIX ESTIMÉ : {prix:,.2f} €")
     except Exception as e:
         print(f"Erreur : {e}")
