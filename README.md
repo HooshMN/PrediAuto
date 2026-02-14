@@ -39,3 +39,6 @@ python -m venv env
 source env/bin/activate
 # Sur Windows :
 env\Scripts\activate
+
+
+pip3 install -r requirements.txt
